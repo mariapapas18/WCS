@@ -10,6 +10,28 @@
 #############################################################
 
 
+
+########################################################################
+#                                                                      #
+#                                 README                               #
+#                                                                      #
+#                                                                      #
+# All you should need are two folders set up: one where you download   #
+# the sound files, and one where you have either Matt's tables or      #
+# the sperm whale csv (which was created from pgdfs).                  #
+#                                                                      #
+# Then assign the input variables so you don't have to do it later!    #
+#                                                                      #
+# Each function is written out after its header describing what it     #
+# does.                                                                #
+#                                                                      #
+# The next line of code will be the name of the function               #
+#( e.g. zipfiles() ) with the correct variables passed into it.        #
+#                                                                      #
+########################################################################
+
+
+
 #----------------------------------
 # Packages to read in:
 #----------------------------------
@@ -28,11 +50,11 @@ library(zip)     # only used to zipfiles()
 #----------------------------------
 
 #For all species:
-TodaysDate <- "12NOV2026"    # Only used for creating the wav info file
-RecorderID <- "NY3"          # Examples: NY3 for NYSERDA Attentive, HCA for Hudson Canyon buoy A, RMIA for RMI buoy A
-Deployment <- "D5"           # Example: D5
-Species <- "Baleen Whale"    # Options: Baleen Whale, Delphinid, Sperm Whale
-TableType <- "full"          # Options: filtered or full
+TodaysDate <- "12NOV2026"                                      # Only used for creating the wav info file
+RecorderID <- "NY3"                                            # Examples: NY3 for NYSERDA Attentive, HCA for Hudson Canyon buoy A, RMIA for RMI buoy A
+Deployment <- "D5"                                             # Example: D5
+Species <- "Baleen Whale"                                      # Options: Baleen Whale, Delphinid, Sperm Whale
+TableType <- "full"                                            # Options: filtered or full
 WD <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs"           # this is the folder you download your sound files to
 
 
@@ -46,15 +68,6 @@ RecoveryDate <- as_datetime("2024-12-16 16:00:00")             # This is the tim
 SoundTrapNumber <- "8587"                                      # this is the soundtrap number, used because the pgdf file names don't conserve the soundtrap number and therefore won't match the wav file names
 
 
-########################################################################
-#                                                                      #
-#                                 README                               #
-#                                                                      #
-# Each function is written out after its header                        #
-# The next line of code will be the function ( e.g. zipfiles() ) with  #
-# the correct variables passed into it                                 #
-#                                                                      #
-########################################################################
 
 # ---------------------------------------------------------------------------------------------------------------------------------
 # Function unzipfiles()

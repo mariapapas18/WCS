@@ -50,22 +50,21 @@ library(zip)     # only used to zipfiles()
 #----------------------------------
 
 #For all species:
-TodaysDate <- "12NOV2026"                                      # Only used for creating the wav info file
-RecorderID <- "NY3"                                            # Examples: NY3 for NYSERDA Attentive, HCA for Hudson Canyon buoy A, RMIA for RMI buoy A
-Deployment <- "D5"                                             # Example: D5
-Species <- "Baleen Whale"                                      # Options: Baleen Whale, Delphinid, Sperm Whale
-TableType <- "full"                                            # Options: filtered or full
-WD <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs"           # this is the folder you download your sound files to
-
+TodaysDate <- "17NOV2026"                                      # Only used for creating the wav info file
+RecorderID <- "NY7"                                            # Examples: NY3 for NYSERDA Attentive, HCA for Hudson Canyon buoy A, RMIA for RMI buoy A
+Deployment <- "D4"                                             # Example: D5
+Species <- "Sperm Whale"                                      # Options: Baleen Whale, Delphinid, Sperm Whale
+TableType <- "filtered"                                            # Options: filtered or full
+WD <- "C:/Users/mpapadopoulos/Downloads/D4 NY7 SPW"           # this is the folder you download your sound files to
 
 #Only for Baleen Whale and Delphinid:
 WDMattTables <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs/MattTables"      # this is the folder you download Matt's detector outputs to
 
 #Only for Sperm Whale:
-WDcsv <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs/CSV"    # this is where you download the csv created from the pgdf detector outputs
-DeploymentDate <- as_datetime("2024-07-08 08:00:00")           # This is the time of the deployment (specifically when it was deployed, not when it started recording -- reduces the FPs we review)
-RecoveryDate <- as_datetime("2024-12-16 16:00:00")             # This is the time of recover (specifically when it was recovery, not when it stopped recording -- reduces the FPs we review)
-SoundTrapNumber <- "8587"                                      # this is the soundtrap number, used because the pgdf file names don't conserve the soundtrap number and therefore won't match the wav file names
+WDcsv <- "C:/Users/mpapadopoulos/Downloads/D4 NY7 SPW/CSV"    # this is where you download the csv created from the pgdf detector outputs
+DeploymentDate <- as_datetime("2025-10-04 17:40:00")           # This is the time of the deployment (specifically when it was deployed, not when it started recording -- reduces the FPs we review)
+RecoveryDate <- as_datetime("2026-01-30 01:00:00")             # This is the time of recover (specifically when it was recovery, not when it stopped recording -- reduces the FPs we review)
+SoundTrapNumber <- "8577"                                      # this is the soundtrap number, used because the pgdf file names don't conserve the soundtrap number and therefore won't match the wav file names
 
 
 
@@ -280,7 +279,9 @@ wav_info_file <- function(WD) {
     dplyr::group_by(Month) %>%
     dplyr::mutate(duration_total = cumsum(duration),
                   WAV.BeginTime = duration_total - duration) %>%
-    dplyr::select(Begin.File, WAV.BeginTime) # select specific columns
+    dplyr::select(Begin.File, WAV.BeginTime) %>% # select specific columns
+    mutate(String = paste0("20", substr(Begin.File, start = 6, stop = 15))) %>%   #in case the pgdf files rounded the seconds differently than the wav files, use this string to join tables in DatesInfo() function
+    arrange(String)
   
   wavinfo <- file.path(WD, "WavInfo")
   
@@ -1077,7 +1078,7 @@ setwd(WDMattTables)
 
 ############PASS IN THE INPUT VARIABLE##########################
 
-create_tables(Species, "fullll")
+create_tables(Species, TableType)
 
 
 

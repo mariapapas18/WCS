@@ -1,13 +1,21 @@
 
-##############################################################
-# CURRENT FUNCTIONS:
-
-# unzipfiles() -> this unzips any downloaded folders and puts all the files into one unzipped folder
-# create_monthfolders() -> this separates all the files (sound files) into monthly folders with the correct naming system
-# zipfiles -> this zips your sound file folders quickly for uploading to drive/sharing
-# wav_info_file() -> this creates a wav info csv, creates a new folder for the file, and puts the file into the folder
-# create_tables() -> this creates selection tables based on species and table type.
 #############################################################
+#            ALL SPECIES SELECTION TABLE PREP               #
+#          Compiled by: Maria Papadopoulos                  #
+#   Built on code by: Carissa King-Nolan, Sarah Trabue,     #
+#            Sarah Pokewaldt, and Grace Fogarty             #
+#############################################################
+
+
+###########################################################################################################################
+# CURRENT FUNCTIONS:                                                                                                      #
+#                                                                                                                         #
+# unzipfiles() -> this unzips any downloaded folders and puts all the files into one unzipped folder                      #
+# create_monthfolders() -> this separates all the files (sound files) into monthly folders with the correct naming system #
+# zipwavfiles -> this zips your sound file folders quickly for uploading to drive/sharing                                    #
+# wav_info_file() -> this creates a wav info csv, creates a new folder for the file, and puts the file into the folder    #
+# create_tables() -> this creates selection tables based on species and table type.                                       #
+###########################################################################################################################
 
 
 
@@ -41,6 +49,7 @@ library(tidyr)
 library(tidyverse)
 library(purrr)
 library(stringr)
+library(tibble)
 library(warbleR) # only used in wav_info_file()
 library(zip)     # only used to zipfiles()
 
@@ -50,21 +59,21 @@ library(zip)     # only used to zipfiles()
 #----------------------------------
 
 #For all species:
-TodaysDate <- "17NOV2026"                                      # Only used for creating the wav info file
-RecorderID <- "NY7"                                            # Examples: NY3 for NYSERDA Attentive, HCA for Hudson Canyon buoy A, RMIA for RMI buoy A
-Deployment <- "D4"                                             # Example: D5
+TodaysDate <- "20NOV2026"                                      # Only used for creating the wav info file
+RecorderID <- "NY3"                                            # Examples: NY3 for NYSERDA Attentive, HCA for Hudson Canyon buoy A, RMIA for RMI buoy A
+Deployment <- "D5"                                             # Example: D5
 Species <- "Sperm Whale"                                      # Options: Baleen Whale, Delphinid, Sperm Whale
 TableType <- "filtered"                                            # Options: filtered or full
-WD <- "C:/Users/mpapadopoulos/Downloads/D4 NY7 SPW"           # this is the folder you download your sound files to
+WD <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 PGDFS"           # this is the folder you download your sound files to
 
 #Only for Baleen Whale and Delphinid:
 WDMattTables <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs/MattTables"      # this is the folder you download Matt's detector outputs to
 
 #Only for Sperm Whale:
-WDcsv <- "C:/Users/mpapadopoulos/Downloads/D4 NY7 SPW/CSV"    # this is where you download the csv created from the pgdf detector outputs
-DeploymentDate <- as_datetime("2025-10-04 17:40:00")           # This is the time of the deployment (specifically when it was deployed, not when it started recording -- reduces the FPs we review)
-RecoveryDate <- as_datetime("2026-01-30 01:00:00")             # This is the time of recover (specifically when it was recovery, not when it stopped recording -- reduces the FPs we review)
-SoundTrapNumber <- "8577"                                      # this is the soundtrap number, used because the pgdf file names don't conserve the soundtrap number and therefore won't match the wav file names
+WDpgdf <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 PGDFS/PGDF"    # this is where you download the csv created from the pgdf detector outputs
+DeploymentDate <- as_datetime("2024-10-06 15:30:00")           # This is the time of the deployment (specifically when it was deployed, not when it started recording -- reduces the FPs we review)
+RecoveryDate <- as_datetime("2026-08-20 07:16:00")             # This is the time of recover (specifically when it was recovery, not when it stopped recording -- reduces the FPs we review)
+SoundTrapNumber <- "8587"                                      # this is the soundtrap number, used because the pgdf file names don't conserve the soundtrap number and therefore won't match the wav file names
 
 
 
@@ -226,14 +235,14 @@ create_monthlyfolders(WD)
 
 
 # -----------------------------------------------------
-# Function zipfiles()
+# Function zipwavfiles()
 
 # ZIP MONTHLY SOUND FILE FOLDERS YOU CREATED (the compression level = 1 makes it go faster than zipping through the Windows file folder)
 # -----------------------------------------------------
 
 # 2. Loop through each folder and zip it using base R
 
-zipfiles <- function(WD, delete_original = FALSE) {
+zipwavfiles <- function(WD, delete_original = FALSE) {
   
   WDSoundFiles <- file.path(WD, "SoundFiles")
   
@@ -254,7 +263,7 @@ zipfiles <- function(WD, delete_original = FALSE) {
 
 
 ############PASS IN THE INPUT VARIABLE##########################
-zipfiles(WD)
+zipwavfiles(WD)
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
@@ -790,12 +799,62 @@ setwd(WDMattTables)
   else if (Species == "Sperm Whale") {
     
     
+    setwd(WDpgdf)
+    
+    
+    # Functions for converting pgdf to df:
+
+    pgdf.df <- function(x){ # assigning the function name as 'pgdf.df'
+      y <- loadPamguardBinaryFile(x) # loading the pgdf file as 'y'
+      y <- pbToDf(y) # using function 'pbToDf' to convert the pgdf file to df, still named 'y'
+      return(y) # I want the result 'y' to be returned at the end of the function 
+    }
+    
+    dataconvertPgDate <- function(dateNum) {
+      if(!is.numeric(dateNum)) {
+        stop('Date must be numeric, "', dateNum, '" is class ', class(dateNum))
+      }
+      as.POSIXct(dateNum, origin='1970-01-01', tz='UTC')
+    }
+    
+    # Convert pgdfs to dataframe
+
+    binarylist <- list.files(path = WDpgdf,
+                             pattern = ".pgdf") %>%
+      set_names()
+    
+    binaryfiles <- lapply(binarylist, function(x){ # lapply() ("l" for list") runs the function through each element (x) of the list. So I'm running our list of pgdf files 'binarylist' through the function we created to read and convert pgdf files to df (see function "pgdf.df")
+      y <- pgdf.df(x) # our custom function, converts pgdf file to df
+      return(y) # return element y
+    })
+    
+
+    # Create dataframe and write CSV for all Low Frequency Clicks
+    
+    WDcsv <- file.path(WD, "CSV")
+    
+    if(!dir.exists(WDcsv)){
+      dir.create(WDcsv)
+    }
+    
     setwd(WDcsv)
+
+    all_clicks_df <- bind_rows(binaryfiles, .id = "source") #set the name of the list element as the source, which adds a column with that source name
+
+    
+    write.csv(all_clicks_df, paste0(Deployment, "_", RecorderID, "_All_LFClicks.csv"))
+    
+
+    # Create dataframe and write CSV for Sperm Whale clicks
+    spermclicks <- all_clicks_df %>% filter(type == 7) #type number (7) corresponds to the "Unique Code" chosen when setting Detector Parameters in PAMGuard
+    spermclicks$date <- convertPgDate(spermclicks$date)
+
+    write.csv(spermclicks, paste0(Deployment, "_", RecorderID, "_SpermWhale_Clicks.csv"))
+    
+    setwd(WDpgdf)
+    
     # STEP 1: Convert pgdf columns
-    spermwhale <-  list.files(path = WDcsv,
-                 pattern = "*.csv",                                           #read in all files from your selected folder with the CSVs you want
-                 full.names = TRUE) %>%                                       #full.names = TRUE allows the computer to locate the entire path name for the file (and therefore the file itself), as opposed to just calling in the file name (e.g. D1_NY1_DEL_MasterDoc)
-      map_dfr(~read_csv(.)) %>% #use this if you are reading in a csv
+    spermwhale <-  spermclicks %>% #use this if you are reading in a csv
       rename_with(
         .fn = ~ rep("file", length(.x)),
         .cols = where(~ is.character(.x) && 
@@ -814,6 +873,7 @@ setwd(WDMattTables)
     
     csvname <- paste0("SPW_ClickDetections", "_", Deployment, "_", RecorderID, ".csv")
     write.csv(spermwhale, csvname)
+    
     
     # STEP 2: Remove overlapping detections
     overlap <- c(spermwhale$endTime)   #create vector from endTime column in newspermwhale df
@@ -1007,7 +1067,7 @@ setwd(WDMattTables)
       csvname <- paste0("SPW_ClickDetections", "_", Deployment, "_", RecorderID, "_CLICKS_fltr.csv")
       write.csv(spermwhale_filtered, csvname)
       
-      
+
       # STEP 1: Create table
       spermwindows <- spermwhale_filtered %>%
         CreateMonthGrp() %>%
@@ -1018,8 +1078,7 @@ setwd(WDMattTables)
         lapply(., RenameCols) %>%
         lapply(., SelectCols)
       
-      
-      View(newspermwhale)
+      View(spermwindows)
       
       print(names(spermwindows))
       

@@ -64,8 +64,8 @@ RecorderID <- "NY3"                                                      # Examp
 Deployment <- "D5"                                                       # Example: D5
 Species <- "Sperm Whale"                                                 # Options: Baleen Whale, Delphinid, Sperm Whale
 TableType <- "filtered"                                                  # Options: filtered or full
-WD <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 SPW"                      # this is the folder where your outputs will go and where you download your sound files to (baleen whale)
-WDSoundFiles <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 SPW/SoundFiles" #this is the folder for unpacked sound files
+WD <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs"                      # this is the folder where your outputs will go and where you download your sound files to (baleen whale)
+WDSoundFiles <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs/April" #this is the folder for unpacked sound files
 
 #Only for Baleen Whale and Delphinid:
 WDMattTables <- "C:/Users/mpapadopoulos/Downloads/D5 NY3 WAVs/MattTables"      # this is the folder you download Matt's detector outputs to
@@ -274,7 +274,7 @@ zipwavfiles(WD)
 #----------------------------------------------------------------------------------------------------------------------------------
 
 
-wav_info_file <- function(WDSoundFiles) {
+wav_info_file <- function() {
   
   #setwd(WD)
   
@@ -305,11 +305,14 @@ wav_info_file <- function(WDSoundFiles) {
   
   write.csv(WAVs_GroupStart, filename)
   
+  return(WAVs_GroupStart)
+  
 }
 
 
+
 ############PASS IN THE INPUT VARIABLE##########################
-wav_info_file(WDSoundFiles)
+WAVs_GroupStart <- wav_info_file()
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------
@@ -321,6 +324,7 @@ wav_info_file(WDSoundFiles)
   
 create_tables <- function(Species, TableType) {  
   
+  WAVs_GroupStart <- wav_info_file()
   
   # Function to create column with MonthGrp
   CreateMonthGrp <- function(x){
@@ -1139,7 +1143,6 @@ setwd(WDMattTables)
 ############PASS IN THE INPUT VARIABLE##########################
 
 create_tables(Species, TableType)
-
 
 
 
